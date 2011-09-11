@@ -1,20 +1,22 @@
 #!/bin/sh
 
-# status line
-while try ; do
-    mpc idle player
-    mpd_string=$(mpdstatus.sh)
-    uptime_string=$(uptime | sed  's/.*://; s/,//g')
-    date_string=$(date +"%a %b %d %R")
+function show_status ()
+{
+    local mpd_string=$(mpdstatus.sh)
+    local uptime_string=$(uptime | sed  's/.*://; s/,//g')
+    local date_string=$(date +"%a %b %d %R")
     xsetroot -name "M{$mpd_string} L{$uptime_string} D{$date_string}";
+}
+
+# status line
+while true ; do
+    mpc -q idle player
+    show_status
 done &
 MPD_STATUS_PID=$?
 
 while true ; do 
-    mpd_string=$(mpdstatus.sh)
-    uptime_string=$(uptime | sed  's/.*://; s/,//g')
-    date_string=$(date +"%a %b %d %R")
-    xsetroot -name "M{$mpd_string} L{$uptime_string} D{$date_string}";
+    show_status
     sleep 5; 
 done &
 STATUS_PID=$?
@@ -32,3 +34,4 @@ while true ; do
 done
 
 kill -2 ${STATUS_PID}
+kill -2 ${MPD_STATUS_PID}
