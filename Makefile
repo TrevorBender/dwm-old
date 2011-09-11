@@ -41,6 +41,11 @@ dist: clean
 	@gzip dwm-${VERSION}.tar
 	@rm -rf dwm-${VERSION}
 
+script:
+	@echo installing dwm start script
+	@cp -f scripts/dwm-start.sh ${HOME}/bin/dwm-start.sh
+	@chmod 755 ${HOME}/bin/dwm-start.sh
+
 install: all
 	@echo installing executable file to ${DESTDIR}${PREFIX}/bin
 	@mkdir -p ${DESTDIR}${PREFIX}/bin
@@ -51,10 +56,11 @@ install: all
 	@sed "s/VERSION/${VERSION}/g" < dwm.1 > ${DESTDIR}${MANPREFIX}/man1/dwm.1
 	@chmod 644 ${DESTDIR}${MANPREFIX}/man1/dwm.1
 
+
 uninstall:
 	@echo removing executable file from ${DESTDIR}${PREFIX}/bin
 	@rm -f ${DESTDIR}${PREFIX}/bin/dwm
 	@echo removing manual page from ${DESTDIR}${MANPREFIX}/man1
 	@rm -f ${DESTDIR}${MANPREFIX}/man1/dwm.1
 
-.PHONY: all options clean dist install uninstall
+.PHONY: all options clean dist install uninstall script
