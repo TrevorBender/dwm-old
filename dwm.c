@@ -294,6 +294,7 @@ static int retval = 0;
 
 /* configuration, allows nested code to access above variables */
 #include "config.h"
+#include "persistent.c"
 
 /* compile-time check if all tags fit into an unsigned int bit array. */
 struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
@@ -1714,6 +1715,7 @@ toggleview(const Arg *arg) {
 
 	if(newtagset) {
 		selmon->tagset[selmon->seltags] = newtagset;
+        toggle_tag (newtagset);
 		focus(NULL);
 		arrange(selmon);
 	}
@@ -1979,11 +1981,13 @@ updatewmhints(Client *c) {
 
 void
 view(const Arg *arg) {
+    current_tag (arg->ui);
 	if((arg->ui & TAGMASK) == selmon->tagset[selmon->seltags])
 		return;
 	selmon->seltags ^= 1; /* toggle sel tagset */
 	if(arg->ui & TAGMASK)
 		selmon->tagset[selmon->seltags] = arg->ui & TAGMASK;
+    view_persistent_tags(selmon);
 	focus(NULL);
 	arrange(selmon);
 }
