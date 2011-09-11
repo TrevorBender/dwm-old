@@ -290,7 +290,7 @@ static Display *dpy;
 static DC dc;
 static Monitor *mons = NULL, *selmon = NULL;
 static Window root;
-static retval = 0;
+static int retval = 0;
 
 /* configuration, allows nested code to access above variables */
 #include "config.h"
