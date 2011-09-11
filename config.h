@@ -50,12 +50,19 @@ static const char *termcmd[]  = { "lxterminal", NULL };
 
 static const int mouse_coords[] = { (1920/2), 0 }; // middle, top of screen
 
+static const char* mpc_toggle[] = { "mpc", "-q", "toggle" };
+static const char* mpc_next[] = { "mpc", "-q", "next" };
+static const char* mpc_prev[] = { "mpc", "-q", "prev" };
+
 #include "mousewarp.c"
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
 	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
 	{ MODKEY|ShiftMask,             XK_Return, spawn,          {.v = termcmd } },
+	{ MODKEY,                       XK_i,      spawn,          {.v = mpc_toggle } },
+	{ MODKEY,                       XK_o,      spawn,          {.v = mpc_next } },
+	{ MODKEY,                       XK_u,      spawn,          {.v = mpc_prev } },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
