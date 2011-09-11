@@ -290,6 +290,7 @@ static Display *dpy;
 static DC dc;
 static Monitor *mons = NULL, *selmon = NULL;
 static Window root;
+static retval = 0;
 
 /* configuration, allows nested code to access above variables */
 #include "config.h"
@@ -1307,6 +1308,7 @@ ptrtomon(int x, int y) {
 
 void
 quit(const Arg *arg) {
+    if (arg->i) retval = 1;
 	running = False;
 }
 
@@ -2076,5 +2078,5 @@ main(int argc, char *argv[]) {
 	run();
 	cleanup();
 	XCloseDisplay(dpy);
-	return EXIT_SUCCESS;
+	return retval;
 }
