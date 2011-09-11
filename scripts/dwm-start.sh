@@ -14,7 +14,7 @@ while true ; do
     echo "$MSG" >> ~/.cache/dwm/stderr 
     # if dwm exits with 0 the loop continues,
     # otherwise break and exit
-    dwm >> ~/.cache/dwm/stdout 2>> ~/.cache/dwm/stderr || break
+    ck-launch-session dwm >> ~/.cache/dwm/stdout 2>> ~/.cache/dwm/stderr || break
 done
 
 kill -2 ${STATUS_PID}
