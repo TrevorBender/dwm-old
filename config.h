@@ -2,12 +2,12 @@
 
 /* appearance */
 static const char font[]            = "Inconsolata Medium 10";
-static const char normbordercolor[] = "#cccccc";
-static const char normbgcolor[]     = "#cccccc";
-static const char normfgcolor[]     = "#000000";
-static const char selbordercolor[]  = "#0066ff";
-static const char selbgcolor[]      = "#0066ff";
-static const char selfgcolor[]      = "#ffffff";
+static const char normbordercolor[] = "#d9ceb2";
+static const char normbgcolor[]     = "#d9ceb2";
+static const char normfgcolor[]     = "#7a6a53";
+static const char selbordercolor[]  = "#99b2b7";
+static const char selbgcolor[]      = "#99b2b7";
+static const char selfgcolor[]      = "#7a6a53";
 static const unsigned int borderpx  = 1;        /* border pixel of windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const Bool showbar           = True;     /* False means no bar */
