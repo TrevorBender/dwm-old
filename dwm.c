@@ -291,11 +291,10 @@ static DC dc;
 static Monitor *mons = NULL, *selmon = NULL;
 static Window root;
 static int retval = 0;
-static int debug = 1;
-static unsigned int cur_tag = 0;
 
 /* configuration, allows nested code to access above variables */
 #include "config.h"
+#include "persistent.c"
 
 /* compile-time check if all tags fit into an unsigned int bit array. */
 struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
@@ -1712,11 +1711,11 @@ toggletag(const Arg *arg) {
 
 void
 toggleview(const Arg *arg) {
-    if (debug) printf ("toggleview %d (%X)\n", arg->ui, arg->ui & TAGMASK);
 	unsigned int newtagset = selmon->tagset[selmon->seltags] ^ (arg->ui & TAGMASK);
 
 	if(newtagset) {
 		selmon->tagset[selmon->seltags] = newtagset;
+        toggle_tag (newtagset);
 		focus(NULL);
 		arrange(selmon);
 	}
@@ -1982,13 +1981,13 @@ updatewmhints(Client *c) {
 
 void
 view(const Arg *arg) {
-    if (debug) printf("view %d\n", arg->ui);
-    cur_tag = arg->ui;
+    current_tag (arg->ui);
 	if((arg->ui & TAGMASK) == selmon->tagset[selmon->seltags])
 		return;
 	selmon->seltags ^= 1; /* toggle sel tagset */
 	if(arg->ui & TAGMASK)
 		selmon->tagset[selmon->seltags] = arg->ui & TAGMASK;
+    view_persistent_tags(selmon);
 	focus(NULL);
 	arrange(selmon);
 }
