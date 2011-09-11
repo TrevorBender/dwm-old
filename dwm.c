@@ -1038,7 +1038,9 @@ void
 initfont(const char *fontstr) {
 	PangoFontMetrics *metrics;
 
-	dc.pgc = pango_xft_get_context(dpy, screen);
+    PangoFontMap *fontmap = pango_xft_get_font_map(dpy, screen);
+    dc.pgc = pango_font_map_create_context(fontmap);
+	/*dc.pgc = pango_xft_get_context(dpy, screen);*/
 	dc.pfd = pango_font_description_from_string(fontstr);
 
 	metrics = pango_context_get_metrics(dc.pgc, dc.pfd, pango_language_from_string(setlocale(LC_CTYPE, "")));
