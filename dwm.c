@@ -259,6 +259,7 @@ static int xerror(Display *dpy, XErrorEvent *ee);
 static int xerrordummy(Display *dpy, XErrorEvent *ee);
 static int xerrorstart(Display *dpy, XErrorEvent *ee);
 static void zoom(const Arg *arg);
+static void togglepassthrough(const Arg *arg);
 
 /* variables */
 static const char broken[] = "broken";
@@ -291,6 +292,7 @@ static DC dc;
 static Monitor *mons = NULL, *selmon = NULL;
 static Window root;
 static int retval = 0;
+static int passthroughmode = 0;
 
 /* configuration, allows nested code to access above variables */
 #include "config.h"
@@ -1038,7 +1040,9 @@ void
 initfont(const char *fontstr) {
 	PangoFontMetrics *metrics;
 
-	dc.pgc = pango_xft_get_context(dpy, screen);
+    PangoFontMap *fontmap = pango_xft_get_font_map(dpy, screen);
+    dc.pgc = pango_font_map_create_context(fontmap);
+	/*dc.pgc = pango_xft_get_context(dpy, screen);*/
 	dc.pfd = pango_font_description_from_string(fontstr);
 
 	metrics = pango_context_get_metrics(dc.pgc, dc.pfd, pango_language_from_string(setlocale(LC_CTYPE, "")));
@@ -1064,18 +1068,53 @@ isuniquegeom(XineramaScreenInfo *unique, size_t n, XineramaScreenInfo *info) {
 #endif /* XINERAMA */
 
 void
+togglepassthrough(const Arg *ignored) {
+    passthroughmode = !passthroughmode;
+    if (passthroughmode) {
+		unsigned int i, j;
+		unsigned int modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
+		KeyCode code;
+
+        XUngrabKey(dpy, AnyKey, AnyModifier, root);
+		for(i = 0; i < LENGTH(keys); i++)
+			if((code = XKeysymToKeycode(dpy, keys[i].keysym)))
+                if (keys[i].func == togglepassthrough)
+                    for(j = 0; j < LENGTH(modifiers); j++)
+                        XGrabKey(dpy, code, keys[i].mod | modifiers[j], root,
+                                True, GrabModeAsync, GrabModeAsync);
+    } else {
+        grabkeys ();
+    }
+}
+
+void
 keypress(XEvent *e) {
 	unsigned int i;
 	KeySym keysym;
 	XKeyEvent *ev;
 
-	ev = &e->xkey;
-	keysym = XKeycodeToKeysym(dpy, (KeyCode)ev->keycode, 0);
-	for(i = 0; i < LENGTH(keys); i++)
-		if(keysym == keys[i].keysym
-		&& CLEANMASK(keys[i].mod) == CLEANMASK(ev->state)
-		&& keys[i].func)
-			keys[i].func(&(keys[i].arg));
+    if (passthroughmode) {
+        int success = 0;
+        ev = &e->xkey;
+        keysym = XKeycodeToKeysym(dpy, (KeyCode)ev->keycode, 0);
+        for(i = 0; i < LENGTH(keys); i++)
+            if(keysym == keys[i].keysym
+                    && CLEANMASK(keys[i].mod) == CLEANMASK(ev->state)
+                    && keys[i].func) {
+                if (keys[i].func == togglepassthrough) {
+                    keys[i].func(&(keys[i].arg));
+                    success = 1;
+                }
+            }
+    } else {
+        ev = &e->xkey;
+        keysym = XKeycodeToKeysym(dpy, (KeyCode)ev->keycode, 0);
+        for(i = 0; i < LENGTH(keys); i++)
+            if(keysym == keys[i].keysym
+                    && CLEANMASK(keys[i].mod) == CLEANMASK(ev->state)
+                    && keys[i].func)
+                keys[i].func(&(keys[i].arg));
+    }
 }
 
 void
