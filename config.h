@@ -53,6 +53,8 @@ static const int mouse_coords[] = { (1920/2), 0 }; // middle, top of screen
 static const char* mpc_toggle[] = { "mpc", "-q", "toggle" };
 static const char* mpc_next[] = { "mpc", "-q", "next" };
 static const char* mpc_prev[] = { "mpc", "-q", "prev" };
+static const char* mpc_seekf[] = { "mpc", "-q", "seek", "+1%" };
+static const char* mpc_seekr[] = { "mpc", "-q", "seek", "-1%" };
 
 #include "mousewarp.c"
 #include "movestack.c"
@@ -64,6 +66,8 @@ static Key keys[] = {
 	{ MODKEY,                       XK_i,      spawn,          {.v = mpc_toggle } },
 	{ MODKEY,                       XK_o,      spawn,          {.v = mpc_next } },
 	{ MODKEY,                       XK_u,      spawn,          {.v = mpc_prev } },
+	{ MODKEY|ShiftMask,             XK_o,      spawn,          {.v = mpc_seekf } },
+	{ MODKEY|ShiftMask,             XK_u,      spawn,          {.v = mpc_seekr } },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
