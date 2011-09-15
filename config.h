@@ -18,19 +18,23 @@ static const char *tags[] = { "1", "2", "3", "4", "5"};
 
 static const Rule rules[] = {
 	/* class      instance    title       tags mask     isfloating   monitor */
-	{ "Gimp",     NULL,       NULL,       0,            True,        -1 },
-	{ "Firefox",  NULL,       NULL,       1 << 8,       False,       -1 },
+	/*{ "Gimp",     NULL,       NULL,       0,            True,        -1 },*/
+	/*{ "Firefox",  NULL,       NULL,       1 << 8,       False,       -1 },*/
+    { "trayer",   NULL,       NULL,       ~0,           True,        -1 },
 };
 
 /* layout(s) */
 static const float mfact      = 0.55; /* factor of master area size [0.05..0.95] */
 static const Bool resizehints = True; /* True means respect size hints in tiled resizals */
 
+#include "fibonacci.c"
 static const Layout layouts[] = {
 	/* symbol     arrange function */
 	{ "[]=",      tile },    /* first entry is default */
 	{ "><>",      NULL },    /* no layout function means floating behavior */
 	{ "[M]",      monocle },
+    { "[@]",      spiral },
+    { "[//]",     dwindle },
 };
 
 /* key definitions */
@@ -55,6 +59,7 @@ static const char* mpc_next[] = { "mpc", "-q", "next" };
 static const char* mpc_prev[] = { "mpc", "-q", "prev" };
 
 #include "mousewarp.c"
+#include "movestack.c"
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -66,6 +71,8 @@ static Key keys[] = {
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
+	{ MODKEY|ShiftMask,             XK_j,      movestack,      {.i = +1 } },
+	{ MODKEY|ShiftMask,             XK_k,      movestack,      {.i = -1 } },
 	{ MODKEY,                       XK_h,      setmfact,       {.f = -0.05} },
 	{ MODKEY,                       XK_l,      setmfact,       {.f = +0.05} },
 	{ MODKEY,                       XK_Return, zoom,           {0} },
@@ -74,6 +81,8 @@ static Key keys[] = {
 	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
 	{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },
 	{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },
+	{ MODKEY,                       XK_s,      setlayout,      {.v = &layouts[3]} },
+	{ MODKEY,                       XK_d,      setlayout,      {.v = &layouts[4]} },
 	{ MODKEY|ShiftMask,             XK_m,      warpmouse,      {.v = mouse_coords } },
 	{ MODKEY,                       XK_space,  setlayout,      {0} },
 	{ MODKEY|ShiftMask,             XK_space,  togglefloating, {0} },
