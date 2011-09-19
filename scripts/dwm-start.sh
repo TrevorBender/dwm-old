@@ -1,11 +1,20 @@
 #!/bin/sh
 
+MEM_TOTAL=$(($(cat /proc/meminfo | grep MemTotal | awk '{print $2}')/1000))
+
+function mem_free ()
+{
+    local mem_free=$(($(cat /proc/meminfo | grep MemFree | awk '{print $2}')/1000))
+    echo "$mem_free/${MEM_TOTAL}mB"
+}
+
 function show_status ()
 {
     local mpd_string=$(mpdstatus.sh)
     local uptime_string=$(uptime | sed  's/.*://; s/,//g')
     local date_string=$(date +"%a %b %d %R")
-    xsetroot -name "M{$mpd_string} L{$uptime_string} D{$date_string}";
+    local mem_info=$(mem_free)
+    xsetroot -name "[$mpd_string] [$mem_info$uptime_string] [$date_string]";
 }
 
 # status line
@@ -33,5 +42,5 @@ while true ; do
     dwm >> ~/.cache/dwm/stdout 2>> ~/.cache/dwm/stderr || break
 done
 
-kill -2 ${STATUS_PID}
-kill -2 ${MPD_STATUS_PID}
+kill -9 ${STATUS_PID}
+kill -9 ${MPD_STATUS_PID}
