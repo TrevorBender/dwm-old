@@ -45,6 +45,7 @@ script:
 	@echo installing dwm start script
 	@cp -f scripts/dwm-start.sh ${HOME}/bin/dwm-start.sh
 	@cp -f scripts/mpdstatus.sh ${HOME}/bin/mpdstatus.sh
+	@cp -f scripts/trayer.sh ${HOME}/bin/trayer.sh
 	@chmod 755 ${HOME}/bin/dwm-start.sh
 
 install: all
