@@ -1,11 +1,11 @@
 #!/bin/sh
 
-MEM_TOTAL=$(($(cat /proc/meminfo | grep MemTotal | awk '{print $2}')/1000))
+MEM_TOTAL=$(free -m | grep Mem: | awk '{print $2}')
 
 function mem_free ()
 {
-    local mem_free=$(($(cat /proc/meminfo | grep MemFree | awk '{print $2}')/1000))
-    echo "$mem_free/${MEM_TOTAL}mB"
+    local mem_free=$(free -m | grep cache: | awk '{print $4}')
+    echo "$mem_free/${MEM_TOTAL}MB"
 }
 
 function show_status ()
