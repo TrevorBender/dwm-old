@@ -1238,7 +1238,7 @@ monocle(Monitor *m) {
 	Client *c;
 
 	for(c = m->clients; c; c = c->next)
-		if(ISVISIBLE(c))
+		if(ISVISIBLE(c) && c != panel)
 			n++;
 	if(n > 0) /* override layout symbol */
 		snprintf(m->ltsymbol, sizeof m->ltsymbol, "[%d]", n);
@@ -1568,6 +1568,7 @@ setlayout(const Arg *arg) {
 void
 setmfact(const Arg *arg) {
 	float f;
+    printf ("setmfact(%f)\n", arg->f);
 
 	if(!arg || !selmon->lt[selmon->sellt]->arrange)
 		return;
