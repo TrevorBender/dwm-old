@@ -35,6 +35,7 @@ static const Layout layouts[] = {
 	{ "[M]",      monocle },
     { "[@]",      spiral },
     { "[//]",     dwindle },
+    { "[I]",      book },
 };
 
 /* key definitions */
@@ -68,13 +69,14 @@ static Key keys[] = {
 	{ MODKEY,                       XK_i,      spawn,          {.v = mpc_toggle } },
 	{ MODKEY,                       XK_o,      spawn,          {.v = mpc_next } },
 	{ MODKEY,                       XK_u,      spawn,          {.v = mpc_prev } },
-	{ MODKEY,                       XK_b,      togglebar,      {0} },
+	{ MODKEY|ShiftMask,             XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
 	{ MODKEY|ShiftMask,             XK_j,      movestack,      {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_k,      movestack,      {.i = -1 } },
 	{ MODKEY,                       XK_h,      setmfact,       {.f = -0.05} },
 	{ MODKEY,                       XK_l,      setmfact,       {.f = +0.05} },
+	{ MODKEY,                       XK_equal,  setmfact,       {.f = 1.5} },
 	{ MODKEY,                       XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
 	{ MODKEY|ShiftMask,             XK_c,      killclient,     {0} },
@@ -83,6 +85,7 @@ static Key keys[] = {
 	{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },
 	{ MODKEY,                       XK_s,      setlayout,      {.v = &layouts[3]} },
 	{ MODKEY,                       XK_d,      setlayout,      {.v = &layouts[4]} },
+	{ MODKEY,                       XK_b,      setlayout,      {.v = &layouts[5]} },
 	{ MODKEY|ShiftMask,             XK_m,      warpmouse,      {.v = mouse_coords } },
 	{ MODKEY,                       XK_space,  setlayout,      {0} },
 	{ MODKEY|ShiftMask,             XK_space,  togglefloating, {0} },
