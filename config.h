@@ -2,12 +2,12 @@
 
 /* appearance */
 static const char font[]            = "Inconsolata Medium 10";
-static const char normbordercolor[] = "#d9ceb2";
-static const char normbgcolor[]     = "#d9ceb2";
-static const char normfgcolor[]     = "#7a6a53";
-static const char selbordercolor[]  = "#99b2b7";
-static const char selbgcolor[]      = "#99b2b7";
-static const char selfgcolor[]      = "#7a6a53";
+static const char normbordercolor[] = "#1b1d1e";
+static const char normbgcolor[]     = "#1b1d1e";
+static const char normfgcolor[]     = "#aaaaaa";
+static const char selbordercolor[]  = "#1b1e1e";
+static const char selbgcolor[]      = "#aaaaaa";
+static const char selfgcolor[]      = "#1b1d1e";
 static const unsigned int borderpx  = 1;        /* border pixel of windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const Bool showbar           = True;     /* False means no bar */
@@ -55,9 +55,9 @@ static const char *termcmd[]  = { "uxterm", NULL };
 
 static const int mouse_coords[] = { (1920/2), 0 }; // middle, top of screen
 
-static const char* mpc_toggle[] = { "mpc", "-q", "toggle" };
-static const char* mpc_next[] = { "mpc", "-q", "next" };
-static const char* mpc_prev[] = { "mpc", "-q", "prev" };
+static const char* mpc_toggle[] = { "mpc", "-q", "toggle", NULL };
+static const char* mpc_next[] = { "mpc", "-q", "next", NULL };
+static const char* mpc_prev[] = { "mpc", "-q", "prev", NULL };
 
 #include "mousewarp.c"
 #include "movestack.c"
