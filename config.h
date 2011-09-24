@@ -2,12 +2,12 @@
 
 /* appearance */
 static const char font[]            = "Inconsolata Medium 10";
-static const char normbordercolor[] = "#d9ceb2";
-static const char normbgcolor[]     = "#d9ceb2";
-static const char normfgcolor[]     = "#7a6a53";
-static const char selbordercolor[]  = "#99b2b7";
-static const char selbgcolor[]      = "#99b2b7";
-static const char selfgcolor[]      = "#7a6a53";
+static const char normbordercolor[] = "#1b1d1e";
+static const char normbgcolor[]     = "#1b1d1e";
+static const char normfgcolor[]     = "#aaaaaa";
+static const char selbordercolor[]  = "#ae81ff";
+static const char selbgcolor[]      = "#aaaaaa";
+static const char selfgcolor[]      = "#1b1d1e";
 static const unsigned int borderpx  = 1;        /* border pixel of windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const Bool showbar           = True;     /* False means no bar */
@@ -18,19 +18,24 @@ static const char *tags[] = { "1", "2", "3", "4", "5"};
 
 static const Rule rules[] = {
 	/* class      instance    title       tags mask     isfloating   monitor */
-	{ "Gimp",     NULL,       NULL,       0,            True,        -1 },
-	{ "Firefox",  NULL,       NULL,       1 << 8,       False,       -1 },
+	/*{ "Gimp",     NULL,       NULL,       0,            True,        -1 },*/
+	/*{ "Firefox",  NULL,       NULL,       1 << 8,       False,       -1 },*/
+    { "trayer",   NULL,       NULL,       ~0,           True,        -1 },
 };
 
 /* layout(s) */
 static const float mfact      = 0.55; /* factor of master area size [0.05..0.95] */
-static const Bool resizehints = True; /* True means respect size hints in tiled resizals */
+static const Bool resizehints = False; /* True means respect size hints in tiled resizals */
 
+#include "fibonacci.c"
 static const Layout layouts[] = {
 	/* symbol     arrange function */
 	{ "[]=",      tile },    /* first entry is default */
 	{ "><>",      NULL },    /* no layout function means floating behavior */
 	{ "[M]",      monocle },
+    { "[@]",      spiral },
+    { "[//]",     dwindle },
+    { "[I]",      book },
 };
 
 /* key definitions */
@@ -46,15 +51,15 @@ static const Layout layouts[] = {
 
 /* commands */
 static const char *dmenucmd[] = { "dmenu_run", "-fn", font, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
-static const char *termcmd[]  = { "lxterminal", NULL };
+static const char *termcmd[]  = { "uxterm", NULL };
 
 static const int mouse_coords[] = { (1920/2), 0 }; // middle, top of screen
 
-static const char* mpc_toggle[] = { "mpc", "-q", "toggle" };
-static const char* mpc_next[] = { "mpc", "-q", "next" };
-static const char* mpc_prev[] = { "mpc", "-q", "prev" };
-static const char* mpc_seekf[] = { "mpc", "-q", "seek", "+1%" };
-static const char* mpc_seekr[] = { "mpc", "-q", "seek", "-1%" };
+static const char* mpc_toggle[] = { "mpc", "-q", "toggle", NULL };
+static const char* mpc_next[] = { "mpc", "-q", "next", NULL };
+static const char* mpc_prev[] = { "mpc", "-q", "prev", NULL };
+static const char* mpc_seekf[] = { "mpc", "-q", "seek", "+1%" , NULL};
+static const char* mpc_seekr[] = { "mpc", "-q", "seek", "-1%" , NULL};
 
 #include "mousewarp.c"
 #include "movestack.c"
@@ -68,19 +73,23 @@ static Key keys[] = {
 	{ MODKEY,                       XK_u,      spawn,          {.v = mpc_prev } },
 	{ MODKEY|ShiftMask,             XK_o,      spawn,          {.v = mpc_seekf } },
 	{ MODKEY|ShiftMask,             XK_u,      spawn,          {.v = mpc_seekr } },
-	{ MODKEY,                       XK_b,      togglebar,      {0} },
+	{ MODKEY|ShiftMask,             XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
 	{ MODKEY|ShiftMask,             XK_j,      movestack,      {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_k,      movestack,      {.i = -1 } },
 	{ MODKEY,                       XK_h,      setmfact,       {.f = -0.05} },
 	{ MODKEY,                       XK_l,      setmfact,       {.f = +0.05} },
+	{ MODKEY,                       XK_equal,  setmfact,       {.f = 1.5} },
 	{ MODKEY,                       XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
 	{ MODKEY|ShiftMask,             XK_c,      killclient,     {0} },
 	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
 	{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },
 	{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },
+	{ MODKEY,                       XK_s,      setlayout,      {.v = &layouts[3]} },
+	{ MODKEY,                       XK_d,      setlayout,      {.v = &layouts[4]} },
+	{ MODKEY,                       XK_b,      setlayout,      {.v = &layouts[5]} },
 	{ MODKEY|ShiftMask,             XK_m,      warpmouse,      {.v = mouse_coords } },
 	{ MODKEY,                       XK_space,  setlayout,      {0} },
 	{ MODKEY|ShiftMask,             XK_space,  togglefloating, {0} },

@@ -1,11 +1,20 @@
 #!/bin/sh
 
+MEM_TOTAL=$(free -m | grep Mem: | awk '{print $2}')
+
+function mem_free ()
+{
+    local mem_free=$(free -m | grep cache: | awk '{print $4}')
+    echo "$mem_free/${MEM_TOTAL}MB"
+}
+
 function show_status ()
 {
     local mpd_string=$(mpdstatus.sh)
     local uptime_string=$(uptime | sed  's/.*://; s/,//g')
     local date_string=$(date +"%a %b %d %R")
-    xsetroot -name "M{$mpd_string} L{$uptime_string} D{$date_string}";
+    local mem_info=$(mem_free)
+    xsetroot -name "[$mpd_string] [$mem_info$uptime_string] [$date_string]";
 }
 
 # status line
@@ -21,7 +30,8 @@ while true ; do
 done &
 STATUS_PID=$?
 
-feh --bg-scale /opt/backup/storage/backup/desktop\ pics/nature.jpg
+xsetroot -solid "#1b1d1e"
+#feh --bg-scale /opt/backup/storage/backup/desktop\ pics/nature.jpg
 
 # start dwm
 while true ; do
@@ -33,5 +43,5 @@ while true ; do
     dwm >> ~/.cache/dwm/stdout 2>> ~/.cache/dwm/stderr || break
 done
 
-kill -2 ${STATUS_PID}
-kill -2 ${MPD_STATUS_PID}
+kill -9 ${STATUS_PID}
+kill -9 ${MPD_STATUS_PID}

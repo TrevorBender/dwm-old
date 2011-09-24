@@ -211,6 +211,7 @@ static void manage(Window w, XWindowAttributes *wa);
 static void mappingnotify(XEvent *e);
 static void maprequest(XEvent *e);
 static void monocle(Monitor *m);
+static void book(Monitor *m);
 static void movemouse(const Arg *arg);
 static Client *nexttiled(Client *c);
 static void pop(Client *);
@@ -286,6 +287,7 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 };
 static Atom wmatom[WMLast], netatom[NetLast];
 static Bool running = True;
+static Client *panel = NULL;
 static Cursor cursor[CurLast];
 static Display *dpy;
 static DC dc;
@@ -304,36 +306,38 @@ struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
 /* function implementations */
 void
 applyrules(Client *c) {
-	const char *class, *instance;
-	unsigned int i;
-	const Rule *r;
-	Monitor *m;
-	XClassHint ch = { NULL, NULL };
+    const char *class, *instance;
+    unsigned int i;
+    const Rule *r;
+    Monitor *m;
+    XClassHint ch = { NULL, NULL };
 
-	/* rule matching */
-	c->isfloating = c->tags = 0;
-	XGetClassHint(dpy, c->win, &ch);
-	class    = ch.res_class ? ch.res_class : broken;
-	instance = ch.res_name  ? ch.res_name  : broken;
+    /* rule matching */
+    c->isfloating = c->tags = 0;
+    if (XGetClassHint(dpy, c->win, &ch)) {
+        class    = ch.res_class ? ch.res_class : broken;
+        instance = ch.res_name  ? ch.res_name  : broken;
 
-	for(i = 0; i < LENGTH(rules); i++) {
-		r = &rules[i];
-		if((!r->title || strstr(c->name, r->title))
-		&& (!r->class || strstr(class, r->class))
-		&& (!r->instance || strstr(instance, r->instance)))
-		{
-			c->isfloating = r->isfloating;
-			c->tags |= r->tags;
-			for(m = mons; m && m->num != r->monitor; m = m->next);
-			if(m)
-				c->mon = m;
-		}
-	}
-	if(ch.res_class)
-		XFree(ch.res_class);
-	if(ch.res_name)
-		XFree(ch.res_name);
-	c->tags = c->tags & TAGMASK ? c->tags & TAGMASK : c->mon->tagset[c->mon->seltags];
+        for(i = 0; i < LENGTH(rules); i++) {
+            r = &rules[i];
+            if((!r->title || strstr(c->name, r->title))
+                    && (!r->class || strstr(class, r->class))
+                    && (!r->instance || strstr(instance, r->instance)))
+            {
+                c->isfloating = r->isfloating;
+                c->tags |= r->tags;
+                for(m = mons; m && m->num != r->monitor; m = m->next);
+                if(m)
+                    c->mon = m;
+            }
+        }
+        if(ch.res_class)
+            XFree(ch.res_class);
+        if(ch.res_name)
+            XFree(ch.res_name);
+    }
+    if(!c->tags && panel != c)
+        c->tags = c->tags & TAGMASK ? c->tags & TAGMASK : c->mon->tagset[c->mon->seltags];
 }
 
 Bool
@@ -751,16 +755,18 @@ drawbar(Monitor *m) {
 	Client *c;
 
 	for(c = m->clients; c; c = c->next) {
-		occ |= c->tags;
-		if(c->isurgent)
-			urg |= c->tags;
+		if(panel != c) {
+                        occ |= c->tags;
+			if(c->isurgent)
+				urg |= c->tags;
+		}
 	}
 	dc.x = 0;
 	for(i = 0; i < LENGTH(tags); i++) {
 		dc.w = TEXTW(tags[i]);
 		col = m->tagset[m->seltags] & 1 << i ? dc.sel : dc.norm;
 		drawtext(tags[i], col, urg & 1 << i);
-		drawsquare(m == selmon && selmon->sel && selmon->sel->tags & 1 << i,
+		drawsquare(m == selmon && (selmon->sel && selmon->sel != panel) && selmon->sel->tags & 1 << i,
 		           occ & 1 << i, urg & 1 << i, col);
 		dc.x += dc.w;
 	}
@@ -867,8 +873,9 @@ expose(XEvent *e) {
 
 void
 focus(Client *c) {
+	if (panel == c) return;
 	if(!c || !ISVISIBLE(c))
-		for(c = selmon->stack; c && !ISVISIBLE(c); c = c->snext);
+		for(c = selmon->stack; c && (!ISVISIBLE(c) || panel == c); c = c->snext);
 	/* was if(selmon->sel) */
 	if(selmon->sel && selmon->sel != c)
 		unfocus(selmon->sel, False);
@@ -917,17 +924,17 @@ focusstack(const Arg *arg) {
 	if(!selmon->sel)
 		return;
 	if(arg->i > 0) {
-		for(c = selmon->sel->next; c && !ISVISIBLE(c); c = c->next);
+		for(c = selmon->sel->next; c && (!ISVISIBLE(c) || panel == c); c = c->next);
 		if(!c)
-			for(c = selmon->clients; c && !ISVISIBLE(c); c = c->next);
+			for(c = selmon->clients; c && (!ISVISIBLE(c) || panel == c); c = c->next);
 	}
 	else {
 		for(i = selmon->clients; i != selmon->sel; i = i->next)
-			if(ISVISIBLE(i))
+			if(ISVISIBLE(i) && panel != i)
 				c = i;
 		if(!c)
 			for(; i; i = i->next)
-				if(ISVISIBLE(i))
+				if(ISVISIBLE(i) && panel != i)
 					c = i;
 	}
 	if(c) {
@@ -1004,7 +1011,7 @@ grabbuttons(Client *c, Bool focused) {
 		unsigned int i, j;
 		unsigned int modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
 		XUngrabButton(dpy, AnyButton, AnyModifier, c->win);
-		if(focused) {
+		if(focused || panel == c) {
 			for(i = 0; i < LENGTH(buttons); i++)
 				if(buttons[i].click == ClkClientWin)
 					for(j = 0; j < LENGTH(modifiers); j++)
@@ -1173,6 +1180,13 @@ manage(Window w, XWindowAttributes *wa) {
 		           && (c->x + (c->w / 2) < c->mon->wx + c->mon->ww)) ? bh : c->mon->my);
 		c->bw = borderpx;
 	}
+	
+	updatetitle(c);
+	if(strstr(c->name, "stalonetray") || strstr(c->name, "panel")) {
+		panel = c;
+		c->bw = 0;
+	}
+
 	wc.border_width = c->bw;
 	XConfigureWindow(dpy, w, CWBorderWidth, &wc);
 	XSetWindowBorder(dpy, w, dc.norm[ColBorder]);
@@ -1225,12 +1239,38 @@ monocle(Monitor *m) {
 	Client *c;
 
 	for(c = m->clients; c; c = c->next)
-		if(ISVISIBLE(c))
+		if(ISVISIBLE(c) && c != panel)
 			n++;
 	if(n > 0) /* override layout symbol */
 		snprintf(m->ltsymbol, sizeof m->ltsymbol, "[%d]", n);
 	for(c = nexttiled(m->clients); c; c = nexttiled(c->next))
 		resize(c, m->wx, m->wy, m->ww - 2 * c->bw, m->wh - 2 * c->bw, False);
+}
+
+void book(Monitor *m) {
+	int x, y, h, w, mw;
+    unsigned int n, i;
+	Client *c;
+	for(n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
+	if(n == 0)
+		return;
+	/* master */
+	c = nexttiled(m->clients);
+	mw = m->mfact * m->ww;
+	resize(c, m->wx, m->wy, (n == 1 ? m->ww : mw) - 2 * c->bw, m->wh - 2 * c->bw, False);
+	if(--n == 0)
+		return;
+	/* stack */
+	x = (m->wx > c->x) ? c->x + mw + 2 * c->bw : m->wx + mw;
+	y = m->wy;
+	w = (m->wx > c->x) ? m->wx + m->ww - x : m->ww - mw;
+	h = m->wh;
+	if(h < bh)
+		h = m->wh;
+	for(i = 0, c = nexttiled(c->next); c; c = nexttiled(c->next), i++) {
+		resize(c, x, y, w - 2 * c->bw, /* remainder */ ((i + 1 == n)
+		       ? m->wy + m->wh - y - 2 * c->bw : h - 2 * c->bw), False);
+	}
 }
 
 void
@@ -1242,6 +1282,7 @@ movemouse(const Arg *arg) {
 
 	if(!(c = selmon->sel))
 		return;
+	if (panel == c) return;
 	restack(selmon);
 	ocx = c->x;
 	ocy = c->y;
@@ -1382,6 +1423,7 @@ resizemouse(const Arg *arg) {
 
 	if(!(c = selmon->sel))
 		return;
+	if (panel == c) return;
 	restack(selmon);
 	ocx = c->x;
 	ocy = c->y;
@@ -1629,7 +1671,7 @@ void
 showhide(Client *c) {
 	if(!c)
 		return;
-	if(ISVISIBLE(c)) { /* show clients top down */
+	if(ISVISIBLE(c) || panel == c) { /* show clients top down */
 		XMoveWindow(dpy, c->win, c->x, c->y);
 		if((!c->mon->lt[c->mon->sellt]->arrange || c->isfloating) && !c->isfullscreen)
 			resize(c, c->x, c->y, c->w, c->h, False);
@@ -1774,6 +1816,8 @@ void
 unmanage(Client *c, Bool destroyed) {
 	Monitor *m = c->mon;
 	XWindowChanges wc;
+	
+	if(panel == c) panel = NULL;
 
 	/* The server grab construct avoids race conditions. */
 	detach(c);
