@@ -10,9 +10,9 @@ if [[ $# -gt 0 ]] ;  then
         DISPLAY=$MY_DISPLAY gdb ./dwm
         exit 0
     elif [[ $1 = "-l" ]] ; then
-        DISPLAY=$MY_DISPLAY ./dwm
+DISPLAY=$MY_DISPLAY ./scripts/dwm-start.sh
         exit 0
     fi
 fi
-DISPLAY=$MY_DISPLAY ./scripts/dwm-start.sh
+DISPLAY=$MY_DISPLAY ./dwm
 echo "return = $?"

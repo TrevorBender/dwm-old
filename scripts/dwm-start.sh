@@ -30,7 +30,8 @@ while true ; do
 done &
 STATUS_PID=$?
 
-feh --bg-scale /opt/backup/storage/backup/desktop\ pics/nature.jpg
+xsetroot -solid "#1b1d1e"
+#feh --bg-scale /opt/backup/storage/backup/desktop\ pics/nature.jpg
 
 # start dwm
 while true ; do
