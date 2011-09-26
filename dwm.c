@@ -1709,9 +1709,19 @@ search(const Arg *arg) {
     Client *client;
     int input_pipe[2];
     int output_pipe[2];
-    if (!pipe (input_pipe)) return;
-    if (!pipe (output_pipe)) return;
+    if (pipe (input_pipe) == -1) {
+        perror ("pipe");
+        return;
+    }
+    if (pipe (output_pipe) == -1) {
+        perror ("pipe");
+        return;
+    }
     pid_t dmenu_pid = fork ();
+    if (dmenu_pid == -1) {
+        perror ("fork");
+        return;
+    }
     if (dmenu_pid == 0) {
         /*this is the child process*/
         close (input_pipe[1]);
