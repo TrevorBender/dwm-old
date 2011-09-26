@@ -1718,7 +1718,7 @@ search(const Arg *arg) {
         dup2 (input_pipe[0], STDIN_FILENO);
         close (output_pipe[0]);
         dup2 (output_pipe[1], STDOUT_FILENO);
-        char *dmenu[] = { "dmenu", NULL };
+        char *dmenu[] = { "dmenu", "-fn", font, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
         execvp (dmenu[0], dmenu);
         exit (EXIT_SUCCESS);
     } else {
@@ -1727,6 +1727,7 @@ search(const Arg *arg) {
         close (input_pipe[0]);
         in_stream = fdopen (input_pipe[1], "w");
         for (client = selmon->clients;client != NULL;client=client->next) {
+            if (client->tags & selmon->tagset[selmon->seltags])
             fprintf (in_stream, "%s\n", client->name);
         }
         fflush (in_stream);
@@ -1749,8 +1750,9 @@ search(const Arg *arg) {
                 }
                 if (client) {
                     /*switch to the client*/
+                    /*switch tags if necessary*/
                     printf ("found: %s\n", client->name);
-                    focus (client);
+                    pop (client);
                 }
             }
         }
