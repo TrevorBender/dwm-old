@@ -1709,8 +1709,8 @@ search(const Arg *arg) {
     Client *client;
     int input_pipe[2];
     int output_pipe[2];
-    pipe (input_pipe);
-    pipe (output_pipe);
+    if (!pipe (input_pipe)) return;
+    if (!pipe (output_pipe)) return;
     pid_t dmenu_pid = fork ();
     if (dmenu_pid == 0) {
         /*this is the child process*/
@@ -1718,16 +1718,15 @@ search(const Arg *arg) {
         dup2 (input_pipe[0], STDIN_FILENO);
         close (output_pipe[0]);
         dup2 (output_pipe[1], STDOUT_FILENO);
-        char *dmenu[] = { "dmenu", "-fn", font, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
-        execvp (dmenu[0], dmenu);
+        const char *dmenu[] = { "dmenu", "-i", "-fn", font, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
+        execvp (dmenu[0], (char**)dmenu);
         exit (EXIT_SUCCESS);
     } else {
         /*send a list of all the windows*/
-        FILE *in_stream;
         close (input_pipe[0]);
-        in_stream = fdopen (input_pipe[1], "w");
+        FILE *in_stream = fdopen (input_pipe[1], "w");
         for (client = selmon->clients;client != NULL;client=client->next) {
-            if (client->tags & selmon->tagset[selmon->seltags])
+            if (client->tags & selmon->tagset[selmon->seltags] && client != panel)
             fprintf (in_stream, "%s\n", client->name);
         }
         fflush (in_stream);
