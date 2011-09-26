@@ -1727,7 +1727,7 @@ search(const Arg *arg) {
         FILE *in_stream = fdopen (input_pipe[1], "w");
         for (client = selmon->clients;client != NULL;client=client->next) {
             if (client->tags & selmon->tagset[selmon->seltags] && client != panel)
-            fprintf (in_stream, "%s\n", client->name);
+                fprintf (in_stream, "%s\n", client->name);
         }
         fflush (in_stream);
         close (input_pipe[1]);
