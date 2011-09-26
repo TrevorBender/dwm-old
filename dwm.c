@@ -198,7 +198,6 @@ static void focus(Client *c);
 static void focusin(XEvent *e);
 static void focusmon(const Arg *arg);
 static void focusstack(const Arg *arg);
-//static unsigned long getcolor(const char *colstr);
 static Bool getrootptr(int *x, int *y);
 static long getstate(Window w);
 static Bool gettextprop(Window w, Atom atom, char *text, unsigned int size);
@@ -234,6 +233,7 @@ static void setup(void);
 static void showhide(Client *c);
 static void sigchld(int unused);
 static void spawn(const Arg *arg);
+static void search(const Arg *arg);
 static void tag(const Arg *arg);
 static void tagmon(const Arg *arg);
 static int textnw(const char *text, unsigned int len);
@@ -1701,6 +1701,63 @@ spawn(const Arg *arg) {
 		perror(" failed");
 		exit(EXIT_SUCCESS);
 	}
+}
+
+void
+search(const Arg *arg) {
+    /*spawn dmenu using a list of all the windows*/
+    Client *client;
+    int input_pipe[2];
+    int output_pipe[2];
+    if (!pipe (input_pipe)) return;
+    if (!pipe (output_pipe)) return;
+    pid_t dmenu_pid = fork ();
+    if (dmenu_pid == 0) {
+        /*this is the child process*/
+        close (input_pipe[1]);
+        dup2 (input_pipe[0], STDIN_FILENO);
+        close (output_pipe[0]);
+        dup2 (output_pipe[1], STDOUT_FILENO);
+        const char *dmenu[] = { "dmenu", "-i", "-fn", font, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
+        execvp (dmenu[0], (char**)dmenu);
+        exit (EXIT_SUCCESS);
+    } else {
+        /*send a list of all the windows*/
+        close (input_pipe[0]);
+        FILE *in_stream = fdopen (input_pipe[1], "w");
+        for (client = selmon->clients;client != NULL;client=client->next) {
+            if (client->tags & selmon->tagset[selmon->seltags] && client != panel)
+            fprintf (in_stream, "%s\n", client->name);
+        }
+        fflush (in_stream);
+        close (input_pipe[1]);
+        int dmenu_status;
+        wait (&dmenu_status);
+        if (WIFEXITED (dmenu_status)) {
+            if (WEXITSTATUS (dmenu_status) == 0) {
+
+                close (output_pipe[1]);
+                char buf[256];
+                FILE *out_stream = fdopen (output_pipe[0], "r");
+                int br = fread (buf, sizeof (char), sizeof (buf) - 1, out_stream);
+                close (output_pipe[0]);
+                buf[br] = '\0';
+                if (br == 0) return;
+                /*use result to find selected window*/
+                for (client = selmon->clients; client != NULL; client=client->next) {
+                    if (strcmp (client->name, buf) == 0) break;
+                }
+                if (client) {
+                    /*switch to the client*/
+                    /*switch tags if necessary*/
+                    printf ("found: %s\n", client->name);
+                    pop (client);
+                }
+            }
+        }
+        else
+            printf ("dmenu abnormal exit\n");
+    }
 }
 
 void
