@@ -439,6 +439,33 @@ attachstack(Client *c) {
 }
 
 void
+book(Monitor *m) {
+	int x, y, h, w, mw;
+    unsigned int n, i;
+	Client *c;
+	for(n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
+	if(n == 0)
+		return;
+	/* master */
+	c = nexttiled(m->clients);
+	mw = m->mfact * m->ww;
+	resize(c, m->wx, m->wy, (n == 1 ? m->ww : mw) - 2 * c->bw, m->wh - 2 * c->bw, False);
+	if(--n == 0)
+		return;
+	/* stack */
+	x = (m->wx > c->x) ? c->x + mw + 2 * c->bw : m->wx + mw;
+	y = m->wy;
+	w = (m->wx > c->x) ? m->wx + m->ww - x : m->ww - mw;
+	h = m->wh;
+	if(h < bh)
+		h = m->wh;
+	for(i = 0, c = nexttiled(c->next); c; c = nexttiled(c->next), i++) {
+		resize(c, x, y, w - 2 * c->bw, /* remainder */ ((i + 1 == n)
+		       ? m->wy + m->wh - y - 2 * c->bw : h - 2 * c->bw), False);
+	}
+}
+
+void
 buttonpress(XEvent *e) {
 	unsigned int i, x, click;
 	Arg arg = {0};
@@ -1247,31 +1274,6 @@ monocle(Monitor *m) {
 		resize(c, m->wx, m->wy, m->ww - 2 * c->bw, m->wh - 2 * c->bw, False);
 }
 
-void book(Monitor *m) {
-	int x, y, h, w, mw;
-    unsigned int n, i;
-	Client *c;
-	for(n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
-	if(n == 0)
-		return;
-	/* master */
-	c = nexttiled(m->clients);
-	mw = m->mfact * m->ww;
-	resize(c, m->wx, m->wy, (n == 1 ? m->ww : mw) - 2 * c->bw, m->wh - 2 * c->bw, False);
-	if(--n == 0)
-		return;
-	/* stack */
-	x = (m->wx > c->x) ? c->x + mw + 2 * c->bw : m->wx + mw;
-	y = m->wy;
-	w = (m->wx > c->x) ? m->wx + m->ww - x : m->ww - mw;
-	h = m->wh;
-	if(h < bh)
-		h = m->wh;
-	for(i = 0, c = nexttiled(c->next); c; c = nexttiled(c->next), i++) {
-		resize(c, x, y, w - 2 * c->bw, /* remainder */ ((i + 1 == n)
-		       ? m->wy + m->wh - y - 2 * c->bw : h - 2 * c->bw), False);
-	}
-}
 
 void
 movemouse(const Arg *arg) {
@@ -1525,6 +1527,73 @@ scan(void) {
 }
 
 void
+search(const Arg *arg) {
+    /*spawn dmenu using a list of all the windows*/
+    Client *client;
+    int input_pipe[2];
+    int output_pipe[2];
+    if (pipe (input_pipe) == -1) {
+        perror ("pipe");
+        return;
+    }
+    if (pipe (output_pipe) == -1) {
+        perror ("pipe");
+        return;
+    }
+    pid_t dmenu_pid = fork ();
+    if (dmenu_pid == -1) {
+        perror ("fork");
+        return;
+    }
+    if (dmenu_pid == 0) {
+        /*this is the child process*/
+        close (input_pipe[1]);
+        dup2 (input_pipe[0], STDIN_FILENO);
+        close (output_pipe[0]);
+        dup2 (output_pipe[1], STDOUT_FILENO);
+        const char *dmenu[] = { "dmenu", "-i", "-fn", font, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
+        execvp (dmenu[0], (char**)dmenu);
+        exit (EXIT_SUCCESS);
+    } else {
+        /*send a list of all the windows*/
+        close (input_pipe[0]);
+        FILE *in_stream = fdopen (input_pipe[1], "w");
+        for (client = selmon->clients;client != NULL;client=client->next) {
+            if (client->tags & selmon->tagset[selmon->seltags] && client != panel)
+                fprintf (in_stream, "%s\n", client->name);
+        }
+        fflush (in_stream);
+        close (input_pipe[1]);
+        int dmenu_status;
+        wait (&dmenu_status);
+        if (WIFEXITED (dmenu_status)) {
+            if (WEXITSTATUS (dmenu_status) == 0) {
+
+                close (output_pipe[1]);
+                char buf[256];
+                FILE *out_stream = fdopen (output_pipe[0], "r");
+                int br = fread (buf, sizeof (char), sizeof (buf) - 1, out_stream);
+                close (output_pipe[0]);
+                buf[br] = '\0';
+                if (br == 0) return;
+                /*use result to find selected window*/
+                for (client = selmon->clients; client != NULL; client=client->next) {
+                    if (strcmp (client->name, buf) == 0) break;
+                }
+                if (client) {
+                    /*switch to the client*/
+                    /*switch tags if necessary*/
+                    printf ("found: %s\n", client->name);
+                    pop (client);
+                }
+            }
+        }
+        else
+            printf ("dmenu abnormal exit\n");
+    }
+}
+
+void
 sendmon(Client *c, Monitor *m) {
 	if(c->mon == m)
 		return;
@@ -1703,72 +1772,6 @@ spawn(const Arg *arg) {
 	}
 }
 
-void
-search(const Arg *arg) {
-    /*spawn dmenu using a list of all the windows*/
-    Client *client;
-    int input_pipe[2];
-    int output_pipe[2];
-    if (pipe (input_pipe) == -1) {
-        perror ("pipe");
-        return;
-    }
-    if (pipe (output_pipe) == -1) {
-        perror ("pipe");
-        return;
-    }
-    pid_t dmenu_pid = fork ();
-    if (dmenu_pid == -1) {
-        perror ("fork");
-        return;
-    }
-    if (dmenu_pid == 0) {
-        /*this is the child process*/
-        close (input_pipe[1]);
-        dup2 (input_pipe[0], STDIN_FILENO);
-        close (output_pipe[0]);
-        dup2 (output_pipe[1], STDOUT_FILENO);
-        const char *dmenu[] = { "dmenu", "-i", "-fn", font, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
-        execvp (dmenu[0], (char**)dmenu);
-        exit (EXIT_SUCCESS);
-    } else {
-        /*send a list of all the windows*/
-        close (input_pipe[0]);
-        FILE *in_stream = fdopen (input_pipe[1], "w");
-        for (client = selmon->clients;client != NULL;client=client->next) {
-            if (client->tags & selmon->tagset[selmon->seltags] && client != panel)
-                fprintf (in_stream, "%s\n", client->name);
-        }
-        fflush (in_stream);
-        close (input_pipe[1]);
-        int dmenu_status;
-        wait (&dmenu_status);
-        if (WIFEXITED (dmenu_status)) {
-            if (WEXITSTATUS (dmenu_status) == 0) {
-
-                close (output_pipe[1]);
-                char buf[256];
-                FILE *out_stream = fdopen (output_pipe[0], "r");
-                int br = fread (buf, sizeof (char), sizeof (buf) - 1, out_stream);
-                close (output_pipe[0]);
-                buf[br] = '\0';
-                if (br == 0) return;
-                /*use result to find selected window*/
-                for (client = selmon->clients; client != NULL; client=client->next) {
-                    if (strcmp (client->name, buf) == 0) break;
-                }
-                if (client) {
-                    /*switch to the client*/
-                    /*switch tags if necessary*/
-                    printf ("found: %s\n", client->name);
-                    pop (client);
-                }
-            }
-        }
-        else
-            printf ("dmenu abnormal exit\n");
-    }
-}
 
 void
 tag(const Arg *arg) {
