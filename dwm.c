@@ -20,6 +20,8 @@
  *
  * To understand everything else, start reading main().
  */
+/*Required for fdopen*/
+#define _POSIX_C_SOURCE (200112L)
 #include <errno.h>
 #include <locale.h>
 #include <stdarg.h>
