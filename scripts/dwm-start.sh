@@ -30,7 +30,7 @@ while true ; do
 done &
 STATUS_PID=$?
 
-xsetroot -solid "#1b1d1e"
+xsetroot -solid "#fdf6e3"
 #feh --bg-scale /opt/backup/storage/backup/desktop\ pics/nature.jpg
 
 # start dwm
