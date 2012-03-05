@@ -11,7 +11,7 @@ void view_persistent_tags (Monitor *sel_mon)
     new_tags_set |= cur_tag;
 
     if (new_tags_set) {
-		selmon->tagset[selmon->seltags] = new_tags_set;
+        selmon->tagset[selmon->seltags] = new_tags_set;
     }
 }
 
