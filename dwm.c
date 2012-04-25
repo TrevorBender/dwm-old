@@ -247,6 +247,7 @@ static int textnw(const char *text, unsigned int len);
 static void tile(Monitor *);
 static void togglebar(const Arg *arg);
 static void togglefloating(const Arg *arg);
+static void togglepassthrough(const Arg *arg);
 static void toggletag(const Arg *arg);
 static void toggleview(const Arg *arg);
 static void unfocus(Client *c, Bool setfocus);
@@ -269,7 +270,6 @@ static int xerror(Display *dpy, XErrorEvent *ee);
 static int xerrordummy(Display *dpy, XErrorEvent *ee);
 static int xerrorstart(Display *dpy, XErrorEvent *ee);
 static void zoom(const Arg *arg);
-static void togglepassthrough(const Arg *arg);
 
 /* variables */
 static const char broken[] = "broken";
