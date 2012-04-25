@@ -297,7 +297,7 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 };
 static Atom wmatom[WMLast], netatom[NetLast];
 static Bool running = True;
-static Client *panel = NULL;
+static Client *tray = NULL;
 static Cursor cursor[CurLast];
 static Display *dpy;
 static DC dc;
@@ -346,7 +346,7 @@ applyrules(Client *c) {
         if(ch.res_name)
             XFree(ch.res_name);
     }
-    if(!c->tags && panel != c)
+    if(!c->tags && tray != c)
         c->tags = c->tags & TAGMASK ? c->tags & TAGMASK : c->mon->tagset[c->mon->seltags];
 }
 
@@ -673,7 +673,7 @@ configurerequest(XEvent *e) {
                 c->y = m->my + (m->mh / 2 - HEIGHT(c) / 2); /* center in y direction */
             if((ev->value_mask & (CWX|CWY)) && !(ev->value_mask & (CWWidth|CWHeight)))
                 configure(c);
-            if(ISVISIBLE(c) && panel != c)
+            if(ISVISIBLE(c) && tray != c)
                 XMoveResizeWindow(dpy, c->win, c->x, c->y, c->w, c->h);
         }
         else
@@ -772,7 +772,7 @@ drawbar(Monitor *m) {
     Client *c;
 
     for(c = m->clients; c; c = c->next) {
-        if(panel != c) {
+        if(tray != c) {
             occ |= c->tags;
             if(c->isurgent)
                 urg |= c->tags;
@@ -783,7 +783,7 @@ drawbar(Monitor *m) {
         dc.w = TEXTW(tags[i]);
         col = m->tagset[m->seltags] & 1 << i ? dc.sel : dc.norm;
         drawtext(tags[i], col, urg & 1 << i);
-        drawsquare(m == selmon && (selmon->sel && selmon->sel != panel) && selmon->sel->tags & 1 << i,
+        drawsquare(m == selmon && (selmon->sel && selmon->sel != tray) && selmon->sel->tags & 1 << i,
                 occ & 1 << i, urg & 1 << i, col);
         dc.x += dc.w;
     }
@@ -890,9 +890,9 @@ expose(XEvent *e) {
 
 void
 focus(Client *c) {
-    if (panel == c) return;
+    if (tray == c) return;
     if(!c || !ISVISIBLE(c))
-        for(c = selmon->stack; c && (!ISVISIBLE(c) || panel == c); c = c->snext);
+        for(c = selmon->stack; c && (!ISVISIBLE(c) || tray == c); c = c->snext);
     /* was if(selmon->sel) */
     if(selmon->sel && selmon->sel != c)
         unfocus(selmon->sel, False);
@@ -941,17 +941,17 @@ focusstack(const Arg *arg) {
     if(!selmon->sel)
         return;
     if(arg->i > 0) {
-        for(c = selmon->sel->next; c && (!ISVISIBLE(c) || panel == c); c = c->next);
+        for(c = selmon->sel->next; c && (!ISVISIBLE(c) || tray == c); c = c->next);
         if(!c)
-            for(c = selmon->clients; c && (!ISVISIBLE(c) || panel == c); c = c->next);
+            for(c = selmon->clients; c && (!ISVISIBLE(c) || tray == c); c = c->next);
     }
     else {
         for(i = selmon->clients; i != selmon->sel; i = i->next)
-            if(ISVISIBLE(i) && panel != i)
+            if(ISVISIBLE(i) && tray != i)
                 c = i;
         if(!c)
             for(; i; i = i->next)
-                if(ISVISIBLE(i) && panel != i)
+                if(ISVISIBLE(i) && tray != i)
                     c = i;
     }
     if(c) {
@@ -1043,7 +1043,7 @@ grabbuttons(Client *c, Bool focused) {
         unsigned int i, j;
         unsigned int modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
         XUngrabButton(dpy, AnyButton, AnyModifier, c->win);
-        if(focused || panel == c) {
+        if(focused || tray == c) {
             for(i = 0; i < LENGTH(buttons); i++)
                 if(buttons[i].click == ClkClientWin)
                     for(j = 0; j < LENGTH(modifiers); j++)
@@ -1219,8 +1219,8 @@ manage(Window w, XWindowAttributes *wa) {
 
     updatetitle(c);
     if(strstr(c->name, "stalonetray") || strstr(c->name, "panel")) {
-        printf("panel = %s\n", c->name);
-        panel = c;
+        printf("tray = %s\n", c->name);
+        tray = c;
         c->bw = 0;
     }
 
@@ -1277,7 +1277,7 @@ monocle(Monitor *m) {
     Client *c;
 
     for(c = m->clients; c; c = c->next)
-        if(ISVISIBLE(c) && c != panel)
+        if(ISVISIBLE(c) && c != tray)
             n++;
     if(n > 0) /* override layout symbol */
         snprintf(m->ltsymbol, sizeof m->ltsymbol, "[%d]", n);
@@ -1310,7 +1310,7 @@ movemouse(const Arg *arg) {
 
     if(!(c = selmon->sel))
         return;
-    if (panel == c) return;
+    if (tray == c) return;
     restack(selmon);
     ocx = c->x;
     ocy = c->y;
@@ -1456,7 +1456,7 @@ resizemouse(const Arg *arg) {
 
     if(!(c = selmon->sel))
         return;
-    if (panel == c) return;
+    if (tray == c) return;
     restack(selmon);
     ocx = c->x;
     ocy = c->y;
@@ -1590,7 +1590,7 @@ search(const Arg *arg) {
         close (input_pipe[0]);
         FILE *in_stream = fdopen (input_pipe[1], "w");
         for (client = selmon->clients;client != NULL;client=client->next) {
-            if (client->tags & selmon->tagset[selmon->seltags] && client != panel)
+            if (client->tags & selmon->tagset[selmon->seltags] && client != tray)
                 fprintf (in_stream, "%s\n", client->name);
         }
         fflush (in_stream);
@@ -1800,7 +1800,7 @@ void
 showhide(Client *c) {
     if(!c)
         return;
-    if(ISVISIBLE(c) || panel == c) { /* show clients top down */
+    if(ISVISIBLE(c) || tray == c) { /* show clients top down */
         XMoveWindow(dpy, c->win, c->x, c->y);
         if((!c->mon->lt[c->mon->sellt]->arrange || c->isfloating) && !c->isfullscreen)
             resize(c, c->x, c->y, c->w, c->h, False);
@@ -1943,7 +1943,7 @@ unmanage(Client *c, Bool destroyed) {
     Monitor *m = c->mon;
     XWindowChanges wc;
 
-    if(panel == c) panel = NULL;
+    if(tray == c) tray = NULL;
 
     /* The server grab construct avoids race conditions. */
     detach(c);
