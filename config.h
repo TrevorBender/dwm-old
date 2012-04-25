@@ -62,6 +62,7 @@ static const char* mpc_seekr[] = { "mpc", "-q", "seek", "-1%" , NULL};
 
 #include "mousewarp.c"
 #include "movestack.c"
+#include "focusroot.c"
 
 static Key keys[] = {
     /* modifier                     key        function        argument */
@@ -80,6 +81,7 @@ static Key keys[] = {
     { MODKEY|ShiftMask,             XK_i,      incnmaster,     {.i = +1 } },
     { MODKEY|ShiftMask,             XK_d,      incnmaster,     {.i = -1 } },
     { MODKEY,                       XK_h,      setmfact,       {.f = -0.05} },
+    { MODKEY|ShiftMask,             XK_h,      focusroot,      {0} },
     { MODKEY,                       XK_l,      setmfact,       {.f = +0.05} },
     { MODKEY,                       XK_equal,  setmfact,       {.f = 1.5} },
     { MODKEY,                       XK_Return, zoom,           {0} },
