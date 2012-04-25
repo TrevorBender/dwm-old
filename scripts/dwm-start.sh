@@ -14,7 +14,8 @@ function show_status ()
     local uptime_string=$(uptime | sed  's/.*://; s/,//g')
     local date_string=$(date +"%a %b %d %R")
     local mem_info=$(mem_free)
-    xsetroot -name "[$mpd_string] [$mem_info$uptime_string] [$date_string]";
+    local notification=$(shownot)
+    xsetroot -name "$notification[$mpd_string] [$mem_info$uptime_string] [$date_string]";
 }
 
 # status line
