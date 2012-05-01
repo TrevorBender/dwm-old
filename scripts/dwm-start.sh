@@ -20,7 +20,7 @@ function show_status ()
 
 # status line
 while true ; do
-    mpc -q idle player
+    mpc -q idle player > /dev/null
     show_status
 done &
 MPD_STATUS_PID=$?
