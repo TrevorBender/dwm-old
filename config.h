@@ -14,7 +14,8 @@ static const Bool showbar           = True;     /* False means no bar */
 static const Bool topbar            = True;     /* False means bottom bar */
 
 /* tagging */
-static const char *tags[] = { "1", "2", "3", "4", "5"};
+static const char *tags[] = { "☕", "☯", "☮", "✇", "☊"};
+/* "☭", "⌥", "✇", "⌤", "☼", "⌘" */
 
 static const Rule rules[] = {
     /* class      instance    title       tags mask     isfloating   monitor */
@@ -50,7 +51,7 @@ static const Layout layouts[] = {
 
 /* commands */
 static const char *dmenucmd[] = { "dmenu_run", "-fn", font, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
-static const char *termcmd[]  = { "uxterm", NULL };
+static const char *termcmd[]  = { "Terminal", NULL };
 static const char *clear_notification[] = { "cln", NULL };
 
 static const int mouse_coords[] = { (1920/2), 0 }; // middle, top of screen
