@@ -1,7 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 
 /* appearance */
-static const char font[]            = "Inconsolata Medium 10";
+static const char font[]            = "Inconsolata Medium 9";
 static const char normbordercolor[] = "#fdf6e3";
 static const char normbgcolor[]     = "#fdf6e3";
 static const char normfgcolor[]     = "#657b83";
@@ -14,7 +14,7 @@ static const Bool showbar           = True;     /* False means no bar */
 static const Bool topbar            = True;     /* False means bottom bar */
 
 /* tagging */
-static const char *tags[] = { "1", "2", "3", "4", "5"};
+static const char *tags[] = { "☯", "2", "3", "4", "5"};
 
 static const Rule rules[] = {
     /* class      instance    title       tags mask     isfloating   monitor */
@@ -34,7 +34,8 @@ static const Layout layouts[] = {
     { "[]=",      tile },    /* first entry is default */
     { "><>",      NULL },    /* no layout function means floating behavior */
     { "[M]",      monocle },
-    { "[I]",      book },
+    { "TTT",      bstack },
+    { "===",      bstackhoriz },
 };
 
 /* key definitions */
@@ -50,7 +51,7 @@ static const Layout layouts[] = {
 
 /* commands */
 static const char *dmenucmd[] = { "dmenu_run", "-fn", font, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
-static const char *termcmd[]  = { "uxterm", NULL };
+static const char *termcmd[]  = { "Terminal", NULL };
 static const char *clear_notification[] = { "cln", NULL };
 
 static const int mouse_coords[] = { (1920/2), 0 }; // middle, top of screen
@@ -60,6 +61,7 @@ static const char* mpc_next[] = { "mpc", "-q", "next", NULL };
 static const char* mpc_prev[] = { "mpc", "-q", "prev", NULL };
 static const char* mpc_seekf[] = { "mpc", "-q", "seek", "+1%" , NULL};
 static const char* mpc_seekr[] = { "mpc", "-q", "seek", "-1%" , NULL};
+static const char * slock[] = { "slock", NULL };
 
 #include "mousewarp.c"
 #include "movestack.c"
@@ -84,6 +86,7 @@ static Key keys[] = {
     { MODKEY,                       XK_h,      setmfact,       {.f = -0.05} },
     { MODKEY|ShiftMask,             XK_h,      focusroot,      {0} },
     { MODKEY,                       XK_l,      setmfact,       {.f = +0.05} },
+    { MODKEY|ShiftMask,             XK_l,      spawn,          {.v = slock } },
     { MODKEY,                       XK_equal,  setmfact,       {.f = 1.5} },
     { MODKEY,                       XK_Return, zoom,           {0} },
     { MODKEY,                       XK_Tab,    view,           {0} },
@@ -94,6 +97,7 @@ static Key keys[] = {
     { MODKEY,                       XK_f,      search,         {0} },
     { MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },
     { MODKEY,                       XK_b,      setlayout,      {.v = &layouts[3]} },
+    { MODKEY,                       XK_n,      setlayout,      {.v = &layouts[4]} },
     { MODKEY|ShiftMask,             XK_m,      warpmouse,      {.v = mouse_coords } },
     { MODKEY,                       XK_space,  setlayout,      {0} },
     { MODKEY|ShiftMask,             XK_space,  togglefloating, {0} },
